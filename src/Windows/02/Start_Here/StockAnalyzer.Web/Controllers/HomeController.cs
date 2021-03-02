@@ -11,9 +11,28 @@ namespace StockAnalyzer.Web.Controllers
     {
         private static string API_URL = "https://ps-async.fekberg.com/api/stocks";
 
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
-            return View();
+
+            using (var client = new HttpClient())
+            {
+                // the task to fetch the results
+                var responseTask = client.GetAsync($"{API_URL}/MSFT");
+
+                // response will have the results once the task finishes
+                // don't have to simply use responseTask.result because that's actually sync
+                // can potentially deadlock the app
+                var response = await responseTask;
+
+                // will contain the results of the task
+                // is a json object, so need to deserialize
+                var content = await response.Content.ReadAsStringAsync();
+
+                var data = JsonConvert.DeserializeObject<IEnumerable<StockPrice>>(content);
+                return View(data);
+            }
+
+            
         }
 
         public ActionResult About()

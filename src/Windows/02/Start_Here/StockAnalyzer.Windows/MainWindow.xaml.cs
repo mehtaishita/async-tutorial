@@ -3,9 +3,11 @@ using StockAnalyzer.Core.Domain;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Windows;
 using System.Windows.Navigation;
+using StockAnalyzer.Core;
 
 namespace StockAnalyzer.Windows
 {
@@ -21,21 +23,16 @@ namespace StockAnalyzer.Windows
 
 
 
-        private void Search_Click(object sender, RoutedEventArgs e)
+        private async void Search_Click(object sender, RoutedEventArgs e)
         {
             BeforeLoadingStockData();
 
-            var client = new WebClient();
+            var store = new DataStore();
 
-            var content = client.DownloadString($"{API_URL}/{StockIdentifier.Text}");
+            var responseTask = store.GetStockPrices(StockIdentifier.Text);
 
-            // Simulate that the web call takes a very long time
-            Thread.Sleep(10000);
-
-            var data = JsonConvert.DeserializeObject<IEnumerable<StockPrice>>(content);
-
-            Stocks.ItemsSource = data;
-
+            Stocks.ItemsSource = await responseTask;
+            
             AfterLoadingStockData();
         }
 
